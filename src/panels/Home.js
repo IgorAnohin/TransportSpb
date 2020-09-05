@@ -8,9 +8,9 @@ import Cell from '@vkontakte/vkui/dist/components/Cell/Cell';
 import Div from '@vkontakte/vkui/dist/components/Div/Div';
 import Avatar from '@vkontakte/vkui/dist/components/Avatar/Avatar';
 
-import { Map, TileLayer, Tooltip, CircleMarker, Popup } from 'react-leaflet';
+import { Map, TileLayer, Tooltip, Circle, CircleMarker, Polyline, Popup, WMSTileLayer } from 'react-leaflet';
 
-import L from 'leaflet';
+import L, { polyline } from 'leaflet';
 import routes from './routes.json';
 
 var routeIdToDataMap = {};
@@ -22,17 +22,23 @@ for (var i = 0; i < routes.length; i++) {
 var GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 var request = require('request');
 
-const iconPerson = new L.Icon({
-    iconUrl: require('./marker.png'),
-    iconRetinaUrl: require('./marker.png'),
-    iconAnchor: null,
-    popupAnchor: null,
-    shadowUrl: null,
-    shadowSize: null,
-    shadowAnchor: null,
-    iconSize: new L.Point(60, 75),
-    className: 'leaflet-div-icon'
-});
+function degrees_to_radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
+
+function getCircleX(degrees, radius) {
+    const radians = degrees_to_radians(degrees);
+    return Math.cos(radians) * radius;
+}
+
+function getCircleY(degrees, radius) {
+    const radians = degrees_to_radians(degrees);
+    return Math.sin(radians) * radius;
+}
+
+
 
 class Home extends React.Component {
 
@@ -43,6 +49,7 @@ class Home extends React.Component {
             id: props.id,
             go: props.go,
             fetchedUser: props.toTermInfo,
+            date: new Date().getTime(),
 
 
         lat: 59.905,
@@ -102,25 +109,28 @@ class Home extends React.Component {
           if (!error && response.statusCode == 200) {
             state.markers_coords[idx] = [];
             var feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(body);
-            console.log("HEY" + feed.length)
+            // console.log("HEY" + feed.length)
             feed.entity.forEach(function(entity) {
               state.markers_coords[idx].push(
                 {
                   "type": idx,
                   "id": entity.vehicle.trip.routeId,
+                  "direction": entity.vehicle.position.bearing,
                   "position": [entity.vehicle.position.latitude, entity.vehicle.position.longitude]
                 }
                 );
             });
 
             setState({});
+          } else {
+              console.log("ERROR")
           }
         });
     }
 
     componentDidMount() {
-        console.log("LOLOLOLOLOLOLOLOLOL")
-        setInterval(() => this.mappingViheclesTimer(), 600);
+        // console.log("LOLOLOLOLOLOLOLOLOL")
+        setInterval(() => this.mappingViheclesTimer(), 6000);
         // this.mappingViheclesTimer();
     }
 
@@ -148,17 +158,45 @@ class Home extends React.Component {
 
         const zoom = this.refs.map.leafletElement.getZoom(); 
         if (routeIdToDataMap[position.id] == undefined) {
-            console.log(position.id)
+            // console.log(position.id)
         }
 
+        const tooltipDirection = (position.direction > 280 || position.direction < 30) ? "bottom" : "top";
         const tooltip = zoom >= 15 ?
-          <Tooltip direction="top" opacity={0.7} permanent>
+          <Tooltip direction={tooltipDirection} opacity={0.7} permanent>
               {routeIdToDataMap[position.id].route_short_name}
           </Tooltip> : <div/>
 
+        // console.log("0");
+        const map = this.refs.map.leafletElement;
+        // console.log(1)
+        var latLng = new L.latLng(position.position[0], position.position[1]);
+        // console.log(2)
+        var point = this.refs.map.leafletElement.latLngToLayerPoint(latLng);
+        // console.log(3)
+
+        var point0 = map.layerPointToLatLng(L.point(point.x, point.y));
+        var pointA = map.layerPointToLatLng(L.point(point.x, point.y-8));
+        // console.log(4)
+
+        const scaledPosition = -(position.direction+270)
+        const yOffset = getCircleY(scaledPosition, 12)
+        const xOffset = getCircleX(scaledPosition, 12)
+
+        var pointB = map.layerPointToLatLng(L.point(point.x, point.y));
+        var pointB1 = map.layerPointToLatLng(L.point(point.x+ xOffset, point.y + yOffset));
+        var pointList = [pointB, pointB1];
         
+        const polyLine =  (
+        <Polyline weight={1} 
+
+            color={"#000000"}
+        positions={pointList} />
+        ) ;
 
         return (
+            <div>
+
         <CircleMarker
             center={position.position}
             radius={this.getMarkerradius(zoom)}
@@ -174,7 +212,10 @@ class Home extends React.Component {
             A pretty CSS3 popup. <br /> Easily customizable.
           </Popup>
           {tooltip}
+
         </CircleMarker>
+        {polyLine}
+            </div>
         );
 
     }
@@ -195,6 +236,19 @@ class Home extends React.Component {
         <TileLayer
           attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png"
+        />
+        <WMSTileLayer
+          layers={this.state.bluemarble ? 'nasa:bluemarble' : 'ne:ne'}
+          url="http://localhost:5000/map"
+            layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
+            format= 'image/png'
+            wheelchaironly= {false}
+            transparent= {true}
+            uppercase= {true}
+
+            _olSalt = {new Date().getTime()}
+            maxZoom={30}
+
         />
         {this.state.markers_coords[0].map((position) => {
             return this.positionToHTML(position);
