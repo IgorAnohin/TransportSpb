@@ -12,6 +12,7 @@ import Search from '@vkontakte/vkui/dist/components/Search/Search';
 import SimpleCell from '@vkontakte/vkui/dist/components/SimpleCell/SimpleCell';
 import Card from '@vkontakte/vkui/dist/components/Card/Card';
 
+import RotatedMarker from './rotated_marker';
 
 
 import axios from 'axios';
@@ -50,6 +51,15 @@ const iconPerson = new L.Icon({
     iconSize: new L.Point(8, 13),
     className: 'leaflet-div-icon'
 });
+
+var icon = L.divIcon({
+    iconSize: [8, 13],
+    html: `<img 
+    style="transform: rotate(80deg); background-color: transform;"
+    height="8" 
+    width="13" 
+    src='bus_8x13.png'>`
+})
 
 
 class Home extends React.Component {
@@ -316,11 +326,12 @@ class Home extends React.Component {
         }
 
         return (
-        <Marker
+        <RotatedMarker
             position={position.position}
+            rotationAngle={position.direction} rotationOrigin={'center'}
             icon={iconPerson}
             >
-        </Marker>
+        </RotatedMarker>
         );
     }
 
