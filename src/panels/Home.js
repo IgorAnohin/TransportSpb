@@ -40,7 +40,7 @@ for (var i = 0; i < stops.length; i++) {
 var GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 var request = require('request');
 
-const iconPerson = new L.Icon({
+const iconBus = new L.Icon({
     iconUrl: require('./bus_8x13.png'),
     iconRetinaUrl: require('./bus_8x13.png'),
     iconAnchor: null,
@@ -52,14 +52,29 @@ const iconPerson = new L.Icon({
     className: 'leaflet-div-icon'
 });
 
-var icon = L.divIcon({
-    iconSize: [8, 13],
-    html: `<img 
-    style="transform: rotate(80deg); background-color: transform;"
-    height="8" 
-    width="13" 
-    src='bus_8x13.png'>`
-})
+const iconTram = new L.Icon({
+    iconUrl: require('./tram_8x13.png'),
+    iconRetinaUrl: require('./tram_8x13.png'),
+    iconAnchor: null,
+    popupAnchor: null,
+    shadowUrl: null,
+    shadowSize: null,
+    shadowAnchor: null,
+    iconSize: new L.Point(8, 13),
+    className: 'leaflet-div-icon'
+});
+
+const iconTrolley = new L.Icon({
+    iconUrl: require('./trolley_8x13.png'),
+    iconRetinaUrl: require('./trolley_8x13.png'),
+    iconAnchor: null,
+    popupAnchor: null,
+    shadowUrl: null,
+    shadowSize: null,
+    shadowAnchor: null,
+    iconSize: new L.Point(8, 13),
+    className: 'leaflet-div-icon'
+});
 
 
 class Home extends React.Component {
@@ -318,6 +333,17 @@ class Home extends React.Component {
         );
     }
 
+    getIconFromType(transportType) {
+        if (transportType == "bus") {
+            return iconBus;
+        } if (transportType == "tram") {
+            return iconTram;
+        } else {
+            return iconTrolley;
+        }
+
+    }
+
     positionToVisibleHTML(position) {
         console.log("HERE")
         const zoom = this.refs.map.leafletElement.getZoom(); 
@@ -325,11 +351,13 @@ class Home extends React.Component {
             // console.log(position.id)
         }
 
+        const type = routeIdToDataMap[this.state.selectedRoute].transport_type;
+
         return (
         <RotatedMarker
             position={position.position}
             rotationAngle={position.direction} rotationOrigin={'center'}
-            icon={iconPerson}
+            icon={this.getIconFromType(type)}
             >
         </RotatedMarker>
         );
