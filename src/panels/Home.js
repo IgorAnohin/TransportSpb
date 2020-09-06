@@ -267,7 +267,7 @@ class Home extends React.Component {
     }
 
     addOnlyTargetVehicleToMap(a,b,c,d) {
-        const url = "http://transport.orgp.spb.ru/Portal/transport/internalapi/gtfs/realtime/vehicle" +
+        const url = "https://home.160r.ru/vehicles" +
                     `?bbox=${a},${b},${c},${d}` +
                     `&routeIDs=${this.state.selectedRoute}`;
         const type = routeIdToDataMap[this.state.selectedRoute].transport_type;
@@ -275,7 +275,7 @@ class Home extends React.Component {
     }
 
     addAllVehiclesToMap(a,b,c,d) {
-        const url = "http://transport.orgp.spb.ru/Portal/transport/internalapi/gtfs/realtime/vehicle" +
+        const url = "https://home.160r.ru/vehicles" +
                     `?bbox=${a},${b},${c},${d}`;
 
 
