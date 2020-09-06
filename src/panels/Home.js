@@ -98,8 +98,6 @@ class Home extends React.Component {
             date: new Date().getTime(),
 
 
-            lat: 59.905,
-            lng: 30.36,
             zoom: 13,
 
             now1: (new Date().getTime()/ 100) | 0,
@@ -124,7 +122,6 @@ class Home extends React.Component {
     }
 
     onPopState(event) {
-        console.log("OLOLOLOLO")
         const timeNow = new Date().getTime();
         if (timeNow - lastOnPopStateTriggered <= 500) {
             window.history.pushState(null, null);
@@ -172,7 +169,6 @@ class Home extends React.Component {
             if (filtered.length >= 5)
                 break
         }
-        console.log("FILETER " + filtered);
 
         this.setState({
             possibleSearchRoutes: filtered
@@ -187,12 +183,10 @@ class Home extends React.Component {
     }
 
     addRouteOnMap(routeId, coordinates) {
-        console.log(routeId)
 
         const stopId = routeIdToDataMap[routeId].final_stop;
         var stopData = stopIdToDataMap[stopId];
 
-        console.log("StopID: " + stopId);
         const stopDot = (stopData == undefined) ? [0, 0] : [stopData.stop_lat,stopData.stop_lon]
 
         const coordinatesOneWayLatLng = [];
@@ -374,16 +368,9 @@ class Home extends React.Component {
         } else {
             return iconTrolley;
         }
-
     }
 
     positionToVisibleHTML(position) {
-        console.log("HERE")
-        const zoom = this.refs.map.leafletElement.getZoom(); 
-        if (routeIdToDataMap[position.id] == undefined) {
-            // console.log(position.id)
-        }
-
         const type = routeIdToDataMap[this.state.selectedRoute].transport_type;
 
         return (
@@ -407,7 +394,7 @@ class Home extends React.Component {
         const go = this.state.go;
         const fetchedUser = this.state.fetchedUser;
 
-        const position = [this.state.lat, this.state.lng]
+        const position = [59.939027, 30.315901]
 
         const now = (new Date().getTime()/ 1000) | 0;
         const prev = this.state.prevnow;
@@ -423,7 +410,7 @@ class Home extends React.Component {
         const show1 = this.state.now1 < this.state.now2;
 
         this.state.prevnow = now
-        console.log("RENDER 1: " + show1 + "1: " + this.state.now1 + " 2: " + this.state.now2)
+        // console.log("RENDER 1: " + show1 + "1: " + this.state.now1 + " 2: " + this.state.now2)
         return (
     // <Panel id={id}>
     <div style={{width: "100%", height: "100%", position: "relative"}}>
