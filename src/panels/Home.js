@@ -226,7 +226,7 @@ class Home extends React.Component {
         const addRouteOnMap = this.addRouteOnMap.bind(this)
         axios({
             method: 'get',
-            url: "http://localhost:5000/way?" + `route_id=${routeId}`,
+            url: "https://home.160r.ru/way?" + `route_id=${routeId}`,
         }).then((response) => {
             console.log(response)
             if (response.status == 200) {
@@ -427,7 +427,7 @@ class Home extends React.Component {
         {this.state.coordinatesOneWayLatLng.length == 0 && <div>
             <WMSTileLayer
             opacity= {show1 ? 1 : 0}
-              url="http://localhost:5000/map"
+              url="https://home.160r.ru/map"
                 layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
                 format= 'image/png'
                 wheelchaironly= {false}
@@ -439,7 +439,7 @@ class Home extends React.Component {
 
             <WMSTileLayer
             opacity= {show1 ? 0 : 1}
-              url="http://localhost:5000/map"
+              url="https://home.160r.ru/map"
                 layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
                 format= 'image/png'
                 wheelchaironly= {false}
