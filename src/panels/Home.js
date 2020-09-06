@@ -24,6 +24,8 @@ import stops from './stops.json';
 
 import './visible.css';
 
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+
 var routeIdToDataMap = {};
 for (var i = 0; i < routes.length; i++) {
     routeIdToDataMap[routes[i].route_id] = routes[i];
@@ -70,14 +72,68 @@ class Home extends React.Component {
             lat: 59.905,
             lng: 30.36,
             zoom: 13,
+
             now1: (new Date().getTime()/ 100) | 0,
             now2: (new Date().getTime()/ 100) | 0,
             prevnow: (new Date().getTime()/ 100) | 0,
 
             coordinatesOneWayLatLng: [],
             coordinatesAnWayLatLng: [],
+
+            search: "",
+            possibleSearchRoutes: [],
         };
         this.state.markers_coords = {0: [], 1: [], 2:[]};
+
+        this.onSearchChange = this.onSearchChange.bind(this);
+        this.onSearchBlur = this.onSearchBlur.bind(this);
+    }
+
+    transportTypeToStr(transportType) {
+        if (transportType == "bus") {
+            return "автобус";
+        } if (transportType == "tram") {
+            return "трамвай";
+        } if (transportType == "trolley") {
+            return "троллейбус";
+        } else {
+            return "";
+        }
+    }
+
+    onSearchChange(e) {
+        this.setState({search: e.target.value});
+
+        const viheclesName = this.state.inLower;
+        const searchInLower = e.target.value.toLowerCase();
+
+        const filtered = [];
+        for (let index = 0; index < routes.length; ++index) {
+            const route = routes[index];
+            const transportTypeStr = this.transportTypeToStr(route.transport_type);
+            const readable = route.route_short_name + " " + transportTypeStr;
+            const readableReversed = transportTypeStr + " " + route.route_short_name;
+            if (readable.startsWith(searchInLower) || readableReversed.startsWith(searchInLower)) {
+                filtered.push({
+                    "id": route.route_id,
+                    "name": readable
+                })
+            }
+            if (filtered.length >= 5)
+                break
+        }
+        console.log("FILETER " + filtered);
+
+        this.setState({
+            possibleSearchRoutes: filtered
+        })
+    }
+
+    async onSearchBlur(e) {
+        await sleep(500)
+        this.setState({
+            possibleSearchRoutes: []
+        })
     }
 
     addRouteOnMap(routeId, coordinates) {
@@ -278,39 +334,41 @@ class Home extends React.Component {
         //   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
-        <WMSTileLayer
-        opacity= {show1 ? 1 : 0}
-          url="http://localhost:5000/map"
-            layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
-            format= 'image/png'
-            wheelchaironly= {false}
-            transparent= {true}
-            uppercase= {true}
+        {this.state.coordinatesOneWayLatLng.length == 0 && <div>
+            <WMSTileLayer
+            opacity= {show1 ? 1 : 0}
+              url="http://localhost:5000/map"
+                layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
+                format= 'image/png'
+                wheelchaironly= {false}
+                transparent= {true}
+                uppercase= {true}
 
-            _olSalt = {this.state.now1}
-        />
+                _olSalt = {this.state.now1}
+            />
 
-        <WMSTileLayer
-        opacity= {show1 ? 0 : 1}
-          url="http://localhost:5000/map"
-            layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
-            format= 'image/png'
-            wheelchaironly= {false}
-            transparent= {true}
-            uppercase= {true}
+            <WMSTileLayer
+            opacity= {show1 ? 0 : 1}
+              url="http://localhost:5000/map"
+                layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
+                format= 'image/png'
+                wheelchaironly= {false}
+                transparent= {true}
+                uppercase= {true}
 
-            _olSalt = {this.state.now2}
-        />
+                _olSalt = {this.state.now2}
+            />
 
-        {this.state.markers_coords[0].map((position) => {
-            return this.positionToHTML(position);
-        })}
-        {this.state.markers_coords[1].map((position) => {
-            return this.positionToHTML(position);
-        })}
-        {this.state.markers_coords[2].map((position) => {
-            return this.positionToHTML(position);
-        })}
+            {this.state.markers_coords[0].map((position) => {
+                return this.positionToHTML(position);
+            })}
+            {this.state.markers_coords[1].map((position) => {
+                return this.positionToHTML(position);
+            })}
+            {this.state.markers_coords[2].map((position) => {
+                return this.positionToHTML(position);
+            })}
+        </div> }
 
         {this.state.coordinatesOneWayLatLng.length != 0 && <div>
             <Polyline positions={this.state.coordinatesOneWayLatLng} color="green" weight={4}/>
@@ -319,14 +377,18 @@ class Home extends React.Component {
 
       </Map>
       <div style={{width: "100%", position: "absolute",  zIndex: 1000}}>
-      <Card size="l" mode="shadow" className="kitchens-help">
+        <Card size="l" mode="shadow" className="kitchens-help">
+          <Search className="toppart" value={this.state.search}
+                  onBlur={this.onSearchBlur} onChange={this.onSearchChange}
+                  />
 
-
-        <Search className="toppart"/>
-        {/* <SimpleCell> 17 автобус </SimpleCell>
-        <SimpleCell> 17 автобус </SimpleCell>
-        <SimpleCell> 17 автобус </SimpleCell>
-        <SimpleCell> 17 автобус </SimpleCell> */}
+          {this.state.possibleSearchRoutes.map((route) => {
+              return (
+                  <SimpleCell onClick={() => this.getWayOfRoute(route.id)}>
+                      {route.name}
+                  </SimpleCell>
+              );
+          })}
         </Card>
       </div>
     </div>
