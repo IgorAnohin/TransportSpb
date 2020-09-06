@@ -1,0 +1,45 @@
+
+.invisible {
+    background-color: transparent;
+    z-index: 1000;
+}
+
+.toppart {
+    width: 60%;
+    background-color: transparent;
+}
+
+.leaflet-tile-loaded {
+   opacity: 100 !important;
+   visibility: visible !important;
+}
+
+.leaflettile3 {
+   opacity: 0 !important;
+   visibility: none !important;
+}
+
+.leaflettile3 .leaflet-tile-container .leaflet-tile {
+   opacity: 0 !important;
+   visibility: none !important;
+
+   transform: translate3d(0) !important;
+
+}
+
+.leaflettile2 .leaflet-tile-container .leaflet-tile {
+   opacity: 1 !important;
+   visibility: visible !important;
+
+   transform: translate3d(0) !important;
+
+}
+.leaflettile2 .leaflet-tile-container * {
+   opacity: 1 !important;
+   visibility: visible !important;
+   transform: translate3d(0) !important;
+}
+img.leaflet-tile-loaded {
+   opacity: 1 !important;
+   visibility: visible !important;
+}

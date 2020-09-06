@@ -1,7 +1,13 @@
+import json
 import urllib.request
 
-url = 'http://transport.orgp.spb.ru/portal-prod/mapserv?map=vehicle_typed.map&&SERVICE=WMS&REQUEST=GetMap&LAYERS=vehicle_bus%2Cvehicle_tram%2Cvehicle_trolley&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&WHEELCHAIRONLY=false&WIDTH=256&HEIGHT=256&SRS=EPSG%3A900913&BBOX=3370567.1992631326,8365268.375529694,3375459.169073384,8370160.345339939'
+url = 'http://transport.orgp.spb.ru/Portal/transport/map/stage?ROUTE=1670&SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&SRS=EPSG%3A900913&BBOX=3248267.954007,8290981.138665,3499755.331694,8460805.106258'
 response = urllib.request.urlopen(url)
-data = response.read()
-print(response.raw)
-print(type(data))
+data = json.loads(response.read())
+coordinates = []
+print(data)
+for feature in data["features"]:
+    coordinates += feature["geometry"]["coordinates"]
+
+#print(coordinates)
+
