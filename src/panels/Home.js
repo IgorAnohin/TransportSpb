@@ -97,6 +97,7 @@ class Home extends React.Component {
             fetchedUser: props.toTermInfo,
             date: new Date().getTime(),
 
+            map_url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
 
             zoom: 13,
 
@@ -264,6 +265,25 @@ class Home extends React.Component {
             this.addOnlyTargetVehicleToMap(a,b,c,d);
 
         }
+
+        const schemeAttribute = document.body.attributes.getNamedItem('scheme');
+        console.log("IMOPRANT VALU '" + schemeAttribute.value + "'")
+        if (schemeAttribute.value != "" && !schemeAttribute.value.includes("light")) {
+            const darkURL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            if (this.state.map_url != darkURL) {
+                this.setState({
+                    map_url: darkURL
+                })
+            }
+        } else {
+            const lightURL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            if (this.state.map_url != lightURL) {
+                this.setState({
+                    map_url: lightURL
+                })
+            }
+        }
+
     }
 
     addOnlyTargetVehicleToMap(a,b,c,d) {
@@ -323,7 +343,11 @@ class Home extends React.Component {
     componentDidMount() {
         // console.log("LOLOLOLOLOLOLOLOLOL")
         setInterval(() => this.mappingViheclesTimer(), 5000);
-        this.mappingViheclesTimer();
+        try {
+            this.mappingViheclesTimer();
+        } catch (error) {
+          console.error(error);
+        }
 
     }
 
@@ -410,6 +434,8 @@ class Home extends React.Component {
         const show1 = this.state.now1 < this.state.now2;
 
         this.state.prevnow = now
+
+        const darkURL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         // console.log("RENDER 1: " + show1 + "1: " + this.state.now1 + " 2: " + this.state.now2)
         return (
     // <Panel id={id}>
@@ -420,7 +446,13 @@ class Home extends React.Component {
                          >
         <TileLayer
           attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png"
+          url={this.state.map_url}
+          attribution={this.state.map_url == darkURL ? '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+          : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
+
+
+        //   url="https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png" -
+        //   url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png" - на Vk
         //   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
