@@ -18,6 +18,17 @@ def handle_value(value):
         return "EPSG:900913"
     return value
 
+@app.route("/vehicles")
+def vehicles():
+    key_value_params_pairs = ["{}={}".format(key, request.args[key]) for key in request.args.keys()]
+    parameters = "&".join(key_value_params_pairs)
+
+    url = 'http://transport.orgp.spb.ru/Portal/transport/internalapi/gtfs/realtime/vehicle?{}'.format(parameters)
+    print("I SEND:",url)
+    response = urllib.request.urlopen(url)
+    data = response.read()
+    return send_file(io.BytesIO(data), mimetype='application/octet-stream')
+
 @app.route("/map")
 def map():
     key_value_params_pairs = ["{}={}".format(key, handle_value(request.args[key])) for key in request.args.keys()]
