@@ -14,6 +14,12 @@ import Card from '@vkontakte/vkui/dist/components/Card/Card';
 
 import RotatedMarker from './rotated_marker';
 
+import {IOS, platform} from '@vkontakte/vkui';
+
+import PanelHeaderButton from '@vkontakte/vkui/dist/components/PanelHeaderButton/PanelHeaderButton';
+import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
+import Icon24Back from '@vkontakte/icons/dist/24/back';
+
 
 import axios from 'axios';
 
@@ -26,6 +32,7 @@ import stops from './stops.json';
 import './visible.css';
 
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+const osName = platform();
 
 var routeIdToDataMap = {};
 for (var i = 0; i < routes.length; i++) {
@@ -77,6 +84,8 @@ const iconTrolley = new L.Icon({
 });
 
 
+var lastOnPopStateTriggered = 0
+
 class Home extends React.Component {
 
     constructor(props) {
@@ -108,6 +117,26 @@ class Home extends React.Component {
 
         this.onSearchChange = this.onSearchChange.bind(this);
         this.onSearchBlur = this.onSearchBlur.bind(this);
+
+        this.onPopState = this.onPopState.bind(this)
+        window.onpopstate = (event) => this.onPopState(event)
+
+    }
+
+    onPopState(event) {
+        console.log("OLOLOLOLO")
+        const timeNow = new Date().getTime();
+        if (timeNow - lastOnPopStateTriggered <= 500) {
+            window.history.pushState(null, null);
+            //this.alert_pihanya("Skip Clearing")
+            return
+        }
+        lastOnPopStateTriggered = timeNow;
+
+        this.setState({
+            coordinatesOneWayLatLng: [],
+            coordinatesAnWayLatLng: []
+        });
     }
 
     transportTypeToStr(transportType) {
@@ -193,6 +222,10 @@ class Home extends React.Component {
         this.state.selectedRoute = routeId;
         this.state.coordinatesOneWayLatLng = coordinatesOneWayLatLng;
         this.state.coordinatesAnWayLatLng = coordinatesAnWayLatLng;
+        window.history.pushState(null, null);
+        this.setState({
+            search: ""
+        });
     }
 
     getWayOfRoute(routeId) {
@@ -363,6 +396,12 @@ class Home extends React.Component {
         );
     }
 
+    getReadableRouteName(roudeId) {
+        const routeData = routeIdToDataMap[roudeId];
+        const transportTypeStr = this.transportTypeToStr(routeData.transport_type);
+        return routeData.route_short_name + " " + transportTypeStr;
+    }
+
     render() {
         const id = this.state.id;
         const go = this.state.go;
@@ -445,19 +484,30 @@ class Home extends React.Component {
 
       </Map>
       <div style={{width: "100%", position: "absolute",  zIndex: 1000}}>
-        <Card size="l" mode="shadow" className="kitchens-help">
-          <Search className="toppart" value={this.state.search}
-                  onBlur={this.onSearchBlur} onChange={this.onSearchChange}
-                  />
+        {this.state.coordinatesOneWayLatLng.length == 0 && 
+            <Card size="l" mode="shadow" className="kitchens-help">
+              <Search className="toppart" value={this.state.search}
+                      onBlur={this.onSearchBlur} onChange={this.onSearchChange}
+                      />
 
-          {this.state.possibleSearchRoutes.map((route) => {
-              return (
-                  <SimpleCell onClick={() => this.getWayOfRoute(route.id)}>
-                      {route.name}
-                  </SimpleCell>
-              );
-          })}
-        </Card>
+              {this.state.possibleSearchRoutes.map((route) => {
+                  return (
+                      <SimpleCell onClick={() => this.getWayOfRoute(route.id)}>
+                          {route.name}
+                      </SimpleCell>
+                  );
+              })}
+            </Card>
+        }
+        {this.state.coordinatesOneWayLatLng.length != 0 && 
+            <PanelHeader separator={false}
+                left={<PanelHeaderButton onClick={() => window.history.back()}>
+                    {osName === IOS ? <Icon28ChevronBack/> : <Icon24Back/>}
+                </PanelHeaderButton>}
+            >
+                {this.getReadableRouteName(this.state.selectedRoute)}
+            </PanelHeader>   
+        }
       </div>
     </div>
 	// </Panel>
