@@ -249,7 +249,7 @@ class Home extends React.Component {
         const show1 = this.state.now1 < this.state.now2;
 
         this.state.prevnow = now
-        console.log("RENDER 1: " + show1)
+        console.log("RENDER 1: " + show1 + "1: " + this.state.now1 + " 2: " + this.state.now2)
         return (
     // <Panel id={id}>
     <div style={{width: "100%", height: "100%", position: "relative"}}>
@@ -263,8 +263,8 @@ class Home extends React.Component {
         //   url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
-<WMSTileLayer
-        className="leaflettile2"
+        <WMSTileLayer
+        opacity= {show1 ? 1 : 0}
           url="http://localhost:5000/map"
             layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
             format= 'image/png'
@@ -272,9 +272,21 @@ class Home extends React.Component {
             transparent= {true}
             uppercase= {true}
 
-            _olSalt = {now}
-
+            _olSalt = {this.state.now1}
         />
+
+        <WMSTileLayer
+        opacity= {show1 ? 0 : 1}
+          url="http://localhost:5000/map"
+            layers= 'vehicle_bus,vehicle_tram,vehicle_trolley'
+            format= 'image/png'
+            wheelchaironly= {false}
+            transparent= {true}
+            uppercase= {true}
+
+            _olSalt = {this.state.now2}
+        />
+
         {this.state.markers_coords[0].map((position) => {
             return this.positionToHTML(position);
         })}
@@ -287,15 +299,6 @@ class Home extends React.Component {
 
         {/* <Polyline positions={coordinatesOneWayLatLng} color="green" weight={4}/>
         <Polyline positions={coordinatesAnWayLatLng} weight={2}/> */}
-
-        <CircleMarker
-            center={example}
-            radius={10}
-            color={"#000000"}
-            weight={4}
-            fillColor={this.getColorFromType(position.type)}
-            fill={true}
-            fillOpacity={0}/>
 
       </Map>
       <div style={{width: "100%", position: "absolute",  zIndex: 1000}}>

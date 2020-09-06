@@ -17,11 +17,13 @@
 .leaflettile3 {
    opacity: 0 !important;
    visibility: none !important;
+   z-index: 0;
 }
 
 .leaflettile3 .leaflet-tile-container .leaflet-tile {
    opacity: 0 !important;
    visibility: none !important;
+   z-index: 0;
 
    transform: translate3d(0) !important;
 
