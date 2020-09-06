@@ -16,7 +16,7 @@ import Card from '@vkontakte/vkui/dist/components/Card/Card';
 
 import axios from 'axios';
 
-import { Map, TileLayer, Tooltip, Circle, CircleMarker, Polyline, Popup, WMSTileLayer } from 'react-leaflet';
+import { Map, TileLayer, Tooltip, Circle, CircleMarker, Marker, Polyline, Popup, WMSTileLayer } from 'react-leaflet';
 
 import L, { polyline } from 'leaflet';
 import routes from './routes.json';
@@ -39,22 +39,17 @@ for (var i = 0; i < stops.length; i++) {
 var GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 var request = require('request');
 
-function degrees_to_radians(degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
-}
-
-function getCircleX(degrees, radius) {
-    const radians = degrees_to_radians(degrees);
-    return Math.cos(radians) * radius;
-}
-
-function getCircleY(degrees, radius) {
-    const radians = degrees_to_radians(degrees);
-    return Math.sin(radians) * radius;
-}
-
+const iconPerson = new L.Icon({
+    iconUrl: require('./bus_8x13.png'),
+    iconRetinaUrl: require('./bus_8x13.png'),
+    iconAnchor: null,
+    popupAnchor: null,
+    shadowUrl: null,
+    shadowSize: null,
+    shadowAnchor: null,
+    iconSize: new L.Point(8, 13),
+    className: 'leaflet-div-icon'
+});
 
 
 class Home extends React.Component {
@@ -77,13 +72,14 @@ class Home extends React.Component {
             now2: (new Date().getTime()/ 100) | 0,
             prevnow: (new Date().getTime()/ 100) | 0,
 
+            selectedRoute: -1,
             coordinatesOneWayLatLng: [],
             coordinatesAnWayLatLng: [],
 
             search: "",
             possibleSearchRoutes: [],
         };
-        this.state.markers_coords = {0: [], 1: [], 2:[]};
+        this.state.markers_coords = {0: [], 1: [], 2:[], 3:[]};
 
         this.onSearchChange = this.onSearchChange.bind(this);
         this.onSearchBlur = this.onSearchBlur.bind(this);
@@ -169,6 +165,7 @@ class Home extends React.Component {
             i++;
         }
 
+        this.state.selectedRoute = routeId;
         this.state.coordinatesOneWayLatLng = coordinatesOneWayLatLng;
         this.state.coordinatesAnWayLatLng = coordinatesAnWayLatLng;
     }
@@ -195,6 +192,7 @@ class Home extends React.Component {
             this.state.markers_coords[0] = [];
             this.state.markers_coords[1] = [];
             this.state.markers_coords[2] = [];
+            this.state.markers_coords[3] = [];
             this.setState({});
             return;
         }
@@ -207,11 +205,24 @@ class Home extends React.Component {
         const b = bounds._northEast.lat;
         const c = bounds._southWest.lng;
         const d = bounds._southWest.lat;
-        this.addVehiclesToMap(a,b,c,d);
 
+        if (this.state.coordinatesOneWayLatLng.length == 0) {
+            this.addAllVehiclesToMap(a,b,c,d);
+        } else {
+            this.addOnlyTargetVehicleToMap(a,b,c,d);
+
+        }
     }
 
-    addVehiclesToMap(a,b,c,d) {
+    addOnlyTargetVehicleToMap(a,b,c,d) {
+        const url = "http://transport.orgp.spb.ru/Portal/transport/internalapi/gtfs/realtime/vehicle" +
+                    `?bbox=${a},${b},${c},${d}` +
+                    `&routeIDs=${this.state.selectedRoute}`;
+        const type = routeIdToDataMap[this.state.selectedRoute].transport_type;
+        this.addVehicleTypeToMap(type, 3, url);
+    }
+
+    addAllVehiclesToMap(a,b,c,d) {
         const url = "http://transport.orgp.spb.ru/Portal/transport/internalapi/gtfs/realtime/vehicle" +
                     `?bbox=${a},${b},${c},${d}`;
 
@@ -275,7 +286,6 @@ class Home extends React.Component {
     }
 
     positionToHTML(position) {
-
         const zoom = this.refs.map.leafletElement.getZoom(); 
         if (routeIdToDataMap[position.id] == undefined) {
             // console.log(position.id)
@@ -296,7 +306,22 @@ class Home extends React.Component {
             >
         </CircleMarker>
         );
+    }
 
+    positionToVisibleHTML(position) {
+        console.log("HERE")
+        const zoom = this.refs.map.leafletElement.getZoom(); 
+        if (routeIdToDataMap[position.id] == undefined) {
+            // console.log(position.id)
+        }
+
+        return (
+        <Marker
+            position={position.position}
+            icon={iconPerson}
+            >
+        </Marker>
+        );
     }
 
     render() {
@@ -310,10 +335,10 @@ class Home extends React.Component {
         const prev = this.state.prevnow;
         if (prev != this.state.now1 && prev != this.state.now2) {
             if (this.state.now1 > this.state.now2) {
-                console.log("Update 2:" + now, " because 1 is " + this.state.now1)
+                // console.log("Update 2:" + now, " because 1 is " + this.state.now1)
                 this.state.now2 = now;
             } else {
-                console.log("Update 1:" + now, " because 2 is " + this.state.now2)
+                // console.log("Update 1:" + now, " because 2 is " + this.state.now2)
                 this.state.now1 = now;
             }
         }
@@ -371,6 +396,10 @@ class Home extends React.Component {
         </div> }
 
         {this.state.coordinatesOneWayLatLng.length != 0 && <div>
+            {this.state.markers_coords[3].map((position) => {
+                return this.positionToVisibleHTML(position);
+            })}
+
             <Polyline positions={this.state.coordinatesOneWayLatLng} color="green" weight={4}/>
             <Polyline positions={this.state.coordinatesAnWayLatLng} weight={2}/>
         </div> }
